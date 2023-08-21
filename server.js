@@ -65,8 +65,8 @@ app.post('/veggies', (req, res) => {
     } else {
         req.body.readyToEat = false;
     }
-    fruits.push(req.body)
-    console.log("this is the veggies array", fruits)
+    veggies.push(req.body)
+    console.log("this is the veggies array", veggies)
     res.redirect('/veggies')
 })
 
