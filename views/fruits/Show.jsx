@@ -1,3 +1,5 @@
+import React from 'react';
+
 function Show({fruit}){
     console.log(fruit)
         return (
