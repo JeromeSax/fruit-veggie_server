@@ -1,8 +1,29 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
-const fruits = require('./models/fruits.js')
-const veggies = require('./models/veggies.js')
+const fruits = require('./models/fruits.js');
+const veggies = require('./models/veggies.js');
+const Fruit = require('./models/fruit.js');
+const Veggie = require('./models/veggie.js');
+const mongoose = require('mongoose');
 
+// CONNECT WITH MONGOOSE
+mongoose.connect(process.env.MONGO_URI_VEGGIES, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    // useCreateIndex: true,
+});
+
+// mongoose.connect(process.env.MONGO_URI_VEGGIES, {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+//     // useCreateIndex: true,
+// });
+
+// Connecting to mongoDB 
+mongoose.connection.once('open', ()=>{
+    console.log('connected to mongoDB')
+})
 
 // setting up engine
 app.set('views', __dirname + '/views');
@@ -20,72 +41,80 @@ app.use(express.urlencoded({extended: false}))
 
 
 // ROUTES
-// Index
-app.get('/fruits', (req, res) => {
-    res.render('fruits/Index', {
-        fruits: fruits
-    })
-});
+// Index FRUITS
+app.get('/fruits', async function (req, res) {
+    const foundFruits = await Fruit.find({})
+        res.render('fruits/Index', {
+            fruits: foundFruits,
+        });
+    });
 
-// New
+// Index VEGGIES
+app.get('/veggies', async function (req, res) {
+    const foundVeggies = await Veggie.find({})
+        res.render('veggies/Index', {
+            veggies: foundVeggies,
+        });
+    });
+
+
+// New FRUITS
 app.get('/fruits/new', (req, res) =>{
     res.render('fruits/New')
 })
 
-// New
+// New VEGGIES
 app.get('/veggies/new', (req, res) =>{
     res.render('veggies/New')
 })
 
 // CREATE = POST
-app.post('/fruits', (req, res) => {
-    console.log("this is the created fruit", req.body)
+app.post('/fruits', async (req, res) => {
     if(req.body.readyToEat === 'on') {
         req.body.readyToEat = true;
     } else {
         req.body.readyToEat = false;
     }
-    fruits.push(req.body)
-    console.log("this is the fruits array", fruits)
-    res.redirect('/fruits')
-})
+    // console.log("this is the fruits array", fruits)
+   const createdFruit = await Fruit.create(req.body)
+   console.log(createdFruit)
+   res.redirect('./fruits')
+});
+   
 
-// Index
-app.get('/veggies', (req, res) => {
-    res.render('veggies/Index', {
-        veggies: veggies
-    })
-})
+
 
 // CREATE = POST
-app.post('/veggies', (req, res) => {
-    console.log("this is the created veggie", req.body)
+app.post('/veggies', async (req, res) => {
     if(req.body.readyToEat === 'on') {
         req.body.readyToEat = true;
     } else {
         req.body.readyToEat = false;
     }
-    veggies.push(req.body)
-    console.log("this is the veggies array", veggies)
-    res.redirect('/veggies')
-})
+   // console.log("this is the veggies array", fruits)
+   const createdVeggie = await Veggie.create(req.body)
+   console.log(createdVeggie)
+   res.redirect('./veggies')
+});
 
 
 
 // SHOW FRUITS
-app.get('/fruits/:index', (req, res) =>{
-    res.render('fruits/Show', { //second param must be an object
-        fruit: fruits[req.params.index] //there will be a variable available inside the ejs file called fruit, its value is fruits[req.params.indexOfFruitsArray]
+app.get('/fruits/:id', async (req, res) =>{
+    const oneFruit = await Fruit.findById(req.params.id)
+    res.render('fruits/Show', {
+        fruit: oneFruit
     })
 })
 
 // SHOW VEGGIES
-app.get('/veggies/:index', (req, res) => {
+app.get('/veggies/:id', async (req, res) =>{
+    const oneVeggie = await Veggie.findById(req.params.id)
     res.render('veggies/Show', {
-        veggies: veggies[req.params.index]
+        veggies: oneVeggie
     })
 })
 
 app.listen(3000, () => {
-    console.log('listening');
+    console.log('listening on port 3000');
 })
